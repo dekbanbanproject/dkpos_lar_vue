@@ -9,26 +9,25 @@ use App\Models\Product;
 
 class ProductController extends Controller
 {
-public function index(Request $request)
-{
-$search = trim((string) $request->get('search'));
+    public function index(Request $request)
+    {
+        $q = trim((string)$request->query('search', ''));
 
+        $query = Product::query()
+            ->where('is_active', 1);
 
-$q = Product::query()->where('is_active', true);
-if ($search !== '') {
-$q->where(function ($qq) use ($search) {
-$qq->where('name', 'like', "%{$search}%")
-->orWhere('sku', 'like', "%{$search}%")
-->orWhere('barcode', 'like', "%{$search}%");
-});
-}
+        if ($q !== '') {
+            $query->where(function ($qq) use ($q) {
+                $qq->where('name', 'like', "%{$q}%")
+                   ->orWhere('sku', 'like', "%{$q}%")
+                   ->orWhere('barcode', 'like', "%{$q}%");
+            });
+        }
 
+        $products = $query->orderBy('name')
+            ->limit(100)
+            ->get(['id','name','sku','barcode','price','stock','image_path']);
 
-$products = $q->orderBy('name')->limit(100)->get([
-'id','name','price','stock','image_path','sku','barcode'
-]);
-
-
-return response()->json(['products' => $products]);
-}
+        return response()->json(['products' => $products]);
+    }
 }

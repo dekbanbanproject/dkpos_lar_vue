@@ -5,103 +5,72 @@
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
           <div class="flex flex-col md:flex-row gap-2 items-center">
-            <input ref="searchInput" v-model="search" @input="debouncedFetch" @keydown.enter.prevent="handleScanEnter"
-              type="text" placeholder="ค้นหาสินค้า / สแกนบาร์โค้ด..." class="input input-bordered w-full" />
+            <input
+              v-model="search"
+              @input="debouncedFetch"
+              @keydown.enter.prevent="handleScanEnter"
+              type="text"
+              placeholder="ค้นหาสินค้า / สแกนบาร์โค้ด..."
+              class="input input-bordered w-full"
+            />
             <button class="btn" @click="fetchProducts">ค้นหา</button>
           </div>
 
-          <!-- ตารางรายการสินค้า + แบ่งหน้า -->
+          <!-- ตารางรายการสินค้า -->
           <div class="mt-4 overflow-auto">
-
-            <!-- กริดสินค้าแบบการ์ด 6 ต่อแถว -->
-            <div class="mt-4">
-              <div v-if="pagedProducts.length"
-                class="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-                <div v-for="p in pagedProducts" :key="p.id" class="card bg-base-100 border">
-                  <figure class="aspect-square overflow-hidden">
-                    <img :src="thumb(p)" class="w-full h-full object-cover" alt="">
-                  </figure>
-
-                  <div class="card-body p-3">
-                    <!-- ชื่อ -->
-                    <div class="font-semibold leading-tight min-h-[2.5rem]">
-                      {{ p.name }}
-                    </div>
-                    <div class="text-xs opacity-70">SKU: {{ p.sku || '-' }} · BC: {{ p.barcode || '-' }}</div>
-
-                    <!-- ราคา | คงเหลือ -->
-                    <div class="mt-1 text-sm">
-                      <span class="font-medium">{{ money(p.price) }}</span>
-                      <span class="opacity-70"> | สต็อค: {{ p.stock }}</span>
-                    </div>
-
-                    <!-- เพิ่มลงตะกร้า -->
-                    <!-- <div class="mt-2 flex items-center justify-between gap-1">
-                      <div class="flex items-center gap-1">
-                        <button class="btn btn-xs" @click="decQty(p.id)">-</button>
-                        <input type="number" class="input input-bordered input-xs w-14 text-center"
-                              v-model.number="qty[p.id]" :min="1" :max="p.stock">
-                        <button class="btn btn-xs" @click="incQty(p.id, p.stock)">+</button>
+            <table class="table" v-if="products.length">
+              <thead>
+                <tr>
+                  <th>รูป</th>
+                  <th>สินค้า</th>
+                  <th class="text-right">ราคา</th>
+                  <th class="text-right">คงเหลือ</th>
+                  <th class="text-right">เพิ่มลงตะกร้า</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="p in products" :key="p.id">
+                  <td>
+                    <div class="avatar">
+                      <div class="w-14 rounded">
+                        <img :src="thumb(p)" alt="">
                       </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="font-semibold leading-tight">{{ p.name }}</div>
+                    <div class="text-xs opacity-70">
+                      SKU: {{ p.sku || '-' }} | BC: {{ p.barcode || '-' }}
+                    </div>
+                  </td>
+                  <td class="text-right">{{ money(p.price) }}</td>
+                  <td class="text-right">{{ p.stock }}</td>
+                  <td class="text-right">
+                    <div class="flex items-center justify-end gap-1">
+                      <button class="btn btn-xs" @click="decQty(p.id)">-</button>
+                      <input
+                        type="number"
+                        class="input input-bordered input-xs w-16 text-center"
+                        v-model.number="qty[p.id]"
+                        :min="1"
+                        :max="p.stock"
+                      />
+                      <button class="btn btn-xs" @click="incQty(p.id, p.stock)">+</button>
                       <button class="btn btn-primary btn-xs" :disabled="p.stock<=0" @click="addWithQty(p)">
                         เพิ่ม
                       </button>
-                    </div> -->
-                    <!-- เพิ่มลงตะกร้า -->
-                    <div class="mt-2 flex items-center justify-between gap-1 whitespace-nowrap">
-                      <div class="flex items-center gap-1">
-                        <button class="btn btn-xs" @click="decQty(p.id)">-</button>
-
-                        <!-- ทำให้เล็กลง + Enter เพื่อเพิ่ม -->
-                        <input type="number" inputmode="numeric" class="input input-bordered input-xs w-10 text-center"
-                          v-model.number="qty[p.id]" :min="1" :max="p.stock" @keydown.enter.prevent="addWithQty(p)" />
-
-                        <button class="btn btn-xs" @click="incQty(p.id, p.stock)">+</button>
-                      </div>
-
-                      <!-- ปุ่มไม่หด/ไม่ล้น -->
-                      <button class="btn btn-primary btn-xs shrink-0" :disabled="p.stock <= 0" @click="addWithQty(p)">
-                        เพิ่ม
-                      </button>
                     </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
 
-
-
-                  </div>
-                </div>
-              </div>
-
-              <div v-else-if="!loading" class="text-center py-10 opacity-70">ไม่พบสินค้า</div>
-              <div v-if="loading" class="text-center py-10">
-                <span class="loading loading-spinner loading-lg"></span>
-              </div>
-
-
-
-              <div v-if="!loading && !pagedProducts.length" class="text-center py-10 opacity-70">
-                ไม่พบสินค้า
-              </div>
-              <div v-if="loading" class="text-center py-10">
-                <span class="loading loading-spinner loading-lg"></span>
-              </div>
-
-              <!-- แถบแบ่งหน้า -->
-              <div class="flex items-center justify-between mt-3" v-if="products.length">
-                <div class="text-sm opacity-70">
-                  แสดง {{ startIndex + 1 }}–{{ endIndex }} จาก {{ products.length }} รายการ
-                </div>
-                <div class="join">
-                  <button class="btn btn-sm join-item" @click="firstPage" :disabled="page === 1">«</button>
-                  <button class="btn btn-sm join-item" @click="prevPage" :disabled="page === 1">‹</button>
-                  <button v-for="n in pageButtons" :key="n" class="btn btn-sm join-item"
-                    :class="{ 'btn-primary': n === page }" @click="goto(n)">{{ n }}</button>
-                  <button class="btn btn-sm join-item" @click="nextPage" :disabled="page === totalPages">›</button>
-                  <button class="btn btn-sm join-item" @click="lastPage" :disabled="page === totalPages">»</button>
-                </div>
-              </div>
-
+            <div v-if="!loading && products.length === 0" class="text-center py-10 opacity-70">
+              ไม่พบสินค้า
             </div>
-
+            <div v-if="loading" class="text-center py-10">
+              <span class="loading loading-spinner loading-lg"></span>
+            </div>
           </div>
         </div>
       </div>
@@ -116,8 +85,11 @@
           <div v-if="cart.length === 0" class="opacity-70">ยังไม่มีสินค้าในตะกร้า</div>
 
           <div v-else class="flex flex-col gap-2 max-h-[50vh] overflow-auto pr-1">
-            <div v-for="(c, idx) in cart" :key="c.id"
-              class="flex items-center justify-between gap-2 bg-base-200 rounded-xl p-2">
+            <div
+              v-for="(c, idx) in cart"
+              :key="c.id"
+              class="flex items-center justify-between gap-2 bg-base-200 rounded-xl p-2"
+            >
               <div class="flex-1">
                 <div class="font-semibold leading-tight">{{ c.name }}</div>
                 <div class="text-sm opacity-70">
@@ -126,8 +98,12 @@
               </div>
               <div class="flex items-center gap-1">
                 <button class="btn btn-xs" @click="decrement(idx)">-</button>
-                <input type="number" class="input input-bordered input-xs w-16 text-center" v-model.number="c.qty"
-                  min="1" />
+                <input
+                  type="number"
+                  class="input input-bordered input-xs w-16 text-center"
+                  v-model.number="c.qty"
+                  min="1"
+                />
                 <button class="btn btn-xs" @click="increment(idx)">+</button>
               </div>
               <button class="btn btn-error btn-xs" @click="remove(idx)">ลบ</button>
@@ -144,9 +120,13 @@
 
             <div class="flex items-center justify-between gap-2">
               <span>ส่วนลด</span>
-              <input ref="discountInput" type="number" class="input input-bordered input-sm w-40 text-right"
-                v-model.number="discount" min="0" :max="discountMax === Infinity ? null : discountMax"
-                @keydown.enter.prevent="focusPaid" />
+              <input
+                type="number"
+                class="input input-bordered input-sm w-40 text-right"
+                v-model.number="discount"
+                min="0"
+                :max="discountMax === Infinity ? null : discountMax"
+              />
             </div>
 
             <div class="flex justify-between text-lg">
@@ -156,8 +136,12 @@
 
             <div class="flex items-center justify-between gap-2">
               <span>รับเงิน</span>
-              <input ref="paidInput" type="number" class="input input-bordered input-sm w-40 text-right"
-                v-model.number="paid" min="0" @keydown.enter.prevent="tryCheckout" />
+              <input
+                type="number"
+                class="input input-bordered input-sm w-40 text-right"
+                v-model.number="paid"
+                min="0"
+              />
             </div>
 
             <div class="flex justify-between">
@@ -177,8 +161,11 @@
 
           <div class="card-actions mt-4 flex gap-2">
             <button class="btn btn-ghost" @click="clearCart" :disabled="cart.length === 0">ล้างตะกร้า</button>
-            <button class="btn btn-primary flex-1" @click="checkout"
-              :disabled="cart.length === 0 || total <= 0 || paid < total">ชำระเงิน</button>
+            <button
+              class="btn btn-primary flex-1"
+              @click="checkout"
+              :disabled="cart.length === 0 || total <= 0 || paid < total"
+            >ชำระเงิน</button>
           </div>
 
           <p v-if="error" class="text-error mt-2">{{ error }}</p>
@@ -212,7 +199,6 @@
           </div>
         </div>
       </dialog>
-
     </aside>
   </div>
 </template>
@@ -221,53 +207,27 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import axios from 'axios'
 
-/** baseURL = '<current-url>/api/' เช่น http://192.168.0.217/dkpos/public/api/ */
+/** สร้าง baseURL = '<current-url>/api/'  เช่น http://192.168.0.217/dkpos/public/api/ */
 const api = axios.create({
   baseURL: new URL('./api/', window.location.href).toString(),
   withCredentials: true,
 })
 
-/* ---------- สินค้า + แบ่งหน้า ---------- */
 const products = ref([])
 const loading = ref(false)
 const search = ref('')
-const page = ref(1)
-const perPage = ref(12)
 let timer = null
 
-const startIndex = computed(() => (page.value - 1) * perPage.value)
-const endIndex = computed(() => Math.min(products.value.length, startIndex.value + perPage.value))
-const totalPages = computed(() => Math.max(1, Math.ceil(products.value.length / perPage.value)))
-const pagedProducts = computed(() => products.value.slice(startIndex.value, endIndex.value))
+// จำนวนที่จะเพิ่มต่อสินค้า (key = product.id)
+const qty = ref({})
 
-const pageButtons = computed(() => {
-  const total = totalPages.value
-  const cur = page.value
-  let s = Math.max(1, cur - 2)
-  let e = Math.min(total, s + 4)
-  s = Math.max(1, e - 4)
-  return Array.from({ length: e - s + 1 }, (_, i) => s + i)
-})
-
-function goto(n) { if (n >= 1 && n <= totalPages.value) page.value = n }
-const nextPage = () => goto(page.value + 1)
-const prevPage = () => goto(page.value - 1)
-const firstPage = () => goto(1)
-const lastPage = () => goto(totalPages.value)
-
-const qty = ref({}) // จำนวนที่จะเพิ่มต่อสินค้า (key = product.id)
-const searchInput = ref(null)
-
-/* ---------- ตะกร้า/คำนวณ ---------- */
 const cart = ref([])
 const discount = ref(0)
 const paid = ref(0)
 const payment_method = ref('cash')
+
 const error = ref('')
 const success = ref('')
-
-const discountInput = ref(null)
-const paidInput = ref(null)
 
 const receiptDialog = ref(null)
 const receipt = ref({ order_no: '', items: [], sub_total: 0, discount: 0, total: 0, paid: 0, change: 0 })
@@ -275,13 +235,13 @@ const receipt = ref({ order_no: '', items: [], sub_total: 0, discount: 0, total:
 const money = (n) => new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(n ?? 0)
 const thumb = (p) => p.image_path || 'https://placehold.co/600x600?text=Bakery'
 
+// โหลดสินค้า + ตั้งค่า qty เริ่มต้น
 const fetchProducts = async () => {
   loading.value = true
   error.value = ''
   try {
     const { data } = await api.get('products', { params: { search: search.value } })
     products.value = data.products || []
-    page.value = 1  // reset หน้าเมื่อค้นหาใหม่
     afterProductsLoaded()
   } catch (e) {
     error.value = 'โหลดรายการสินค้าไม่สำเร็จ'
@@ -302,11 +262,9 @@ const debouncedFetch = () => {
   timer = setTimeout(fetchProducts, 300)
 }
 
-onMounted(() => {
-  fetchProducts().then(() => searchInput.value?.focus())
-})
+onMounted(fetchProducts)
 
-/* ---------- เพิ่มลงตะกร้า (มีจำนวน) ---------- */
+// จัดการเพิ่มสินค้าลงตะกร้าแบบเลือกจำนวน
 const ensureQty = (pid, stock) => {
   const n = qty.value[pid]
   if (!n || n < 1) qty.value[pid] = 1
@@ -327,7 +285,7 @@ const addWithQty = (p) => {
   }
 }
 
-/* ---------- ยิงบาร์โค้ด + Enter ---------- */
+// ยิงบาร์โค้ดแล้วกด Enter → เพิ่มสินค้าอัตโนมัติ
 const handleScanEnter = async () => {
   const code = (search.value || '').trim()
   if (!code) return
@@ -343,12 +301,11 @@ const handleScanEnter = async () => {
   if (p) {
     addWithQty(p)
     search.value = ''
-    await fetchProducts() // อัปเดตสต็อก
-    searchInput.value?.focus()
+    await fetchProducts() // ให้สต็อกอัปเดต
   }
 }
 
-/* ---------- ตะกร้า ---------- */
+// ฟังก์ชันเดิม ๆ สำหรับจัดการตะกร้า
 const addToCart = (p) => {
   const idx = cart.value.findIndex(i => i.id === p.id)
   if (idx >= 0) {
@@ -367,29 +324,20 @@ const decrement = (i) => { if (cart.value[i].qty > 1) cart.value[i].qty-- }
 const remove = (i) => cart.value.splice(i, 1)
 const clearCart = () => { cart.value = []; discount.value = 0; paid.value = 0; success.value = ''; error.value = '' }
 
-/* ---------- คำนวณ + สิทธิ์ส่วนลด ---------- */
 const role = (window.userRole || 'cashier').toLowerCase()
 const subTotal = computed(() => cart.value.reduce((s, c) => s + c.price * c.qty, 0))
 const discountMax = computed(() => role === 'cashier' ? +(subTotal.value * 0.10).toFixed(2) : Infinity)
 const total = computed(() => Math.max(0, subTotal.value - (discount.value || 0)))
 const change = computed(() => Math.max(0, (paid.value || 0) - total.value))
 
+// บีบส่วนลดของ cashier ไม่ให้เกิน 10% ของยอดรวม
 watch([discount, subTotal], () => {
   if (role === 'cashier' && isFinite(discountMax.value) && discount.value > discountMax.value) {
     discount.value = discountMax.value
   }
 })
 
-/* ---------- ทางลัดกด Enter ---------- */
-const focusPaid = () => paidInput.value?.focus()
-const tryCheckout = () => {
-  if (cart.value.length && total.value > 0 && paid.value >= total.value) {
-    checkout()
-  }
-}
-
-/* ---------- ชำระเงิน ---------- */
-async function checkout() {
+async function checkout () {
   error.value = ''; success.value = ''
   if (role === 'cashier' && isFinite(discountMax.value) && discount.value > discountMax.value) {
     error.value = `ส่วนลดเกินสิทธิ์ (สูงสุด ${discountMax.value.toLocaleString()} บาท)`
@@ -409,11 +357,10 @@ async function checkout() {
     receiptDialog.value?.showModal()
     await fetchProducts()
     clearCart()
-    searchInput.value?.focus() // พร้อมยิงบาร์โค้ดต่อ
   } catch (e) {
     error.value = e?.response?.data?.message || 'ไม่สามารถชำระเงินได้'
   }
 }
 
-function printReceipt() { window.print() }
+function printReceipt () { window.print() }
 </script>

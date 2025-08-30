@@ -16,7 +16,7 @@
       @endif
       <form method="post" action="{{ route('login') }}" class="space-y-3">
         @csrf
-        <input class="input input-bordered w-full" name="login" placeholder="อีเมลหรือชื่อผู้ใช้" value="{{ old('login') }}" required>
+        <input class="input input-bordered w-full" name="login" placeholder="ชื่อผู้ใช้" value="{{ old('login') }}" required>
         <input class="input input-bordered w-full" type="password" name="password" placeholder="รหัสผ่าน" required>
         <button class="btn btn-primary w-full" type="submit">เข้าสู่ระบบ</button>
       </form>
