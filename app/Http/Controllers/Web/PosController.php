@@ -1,0 +1,14 @@
+<?php
+namespace App\Http\Controllers\Web;
+
+
+use App\Http\Controllers\Controller;
+
+
+class PosController extends Controller
+{
+public function index()
+{
+return view('pos'); // Vue จะ mount ลงในหน้านี้
+}
+}
