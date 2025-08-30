@@ -19,6 +19,7 @@
       @auth('web')
         @php $role = auth('web')->user()->role ?? null; @endphp
         @if(in_array($role, ['admin','manager']))
+        <a href="{{ route('admin.categories.index') }}" class="btn btn-ghost btn-sm">หมวดหมู่</a>
           <a href="{{ route('admin.products.index') }}" class="btn btn-ghost btn-sm">สินค้า</a>
           <a href="{{ route('admin.stock-ins.index') }}" class="btn btn-ghost btn-sm">รับสินค้าเข้า</a>
           <a href="{{ route('admin.expenses.index') }}" class="btn btn-ghost btn-sm">รายจ่าย</a>

@@ -21,6 +21,8 @@ use App\Http\Controllers\Admin\StockInController;
 use App\Http\Controllers\Admin\ExpenseController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Web\CheckoutController;
+use App\Http\Controllers\Admin\CategoryController;
+
 
 // ไปชำระเงินด้วย PromptPay / โอน
 Route::get('/checkout', [CheckoutController::class, 'show'])->name('shop.checkout.show');
@@ -98,6 +100,8 @@ Route::middleware('auth:web')->group(function () {
 
             Route::get('orders/{order}/edit', [\App\Http\Controllers\Admin\OrderEditController::class,'edit'])->name('orders.edit');
             Route::put('orders/{order}', [\App\Http\Controllers\Admin\OrderEditController::class,'update'])->name('orders.update');
+            Route::resource('categories', CategoryController::class)->except(['show']);
+
 
         });
 

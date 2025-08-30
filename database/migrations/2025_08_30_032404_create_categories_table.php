@@ -11,6 +11,7 @@ return new class extends Migration {
             $table->id(); // BIGINT UNSIGNED
             $table->string('name');
             $table->string('slug')->unique();
+            $table->unsignedInteger('position')->default(0); // เอาไว้เรียง
             $table->timestamps();
         });
     }

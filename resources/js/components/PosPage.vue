@@ -275,20 +275,39 @@ const receipt = ref({ order_no: '', items: [], sub_total: 0, discount: 0, total:
 const money = (n) => new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(n ?? 0)
 const thumb = (p) => p.image_path || 'https://placehold.co/600x600?text=Bakery'
 
+const POS_CATEGORY_ID = 5
 const fetchProducts = async () => {
   loading.value = true
   error.value = ''
   try {
-    const { data } = await api.get('products', { params: { search: search.value } })
+    const { data } = await axios.get('/api/products', {
+      params: {
+        search: search.value,
+        category_id: POS_CATEGORY_ID,   // 👈 ล็อกเฉพาะหมวด 5
+        per_page: 12                    // (ถ้าต้องการ 12 ต่อหน้า)
+      }
+    })
     products.value = data.products || []
-    page.value = 1  // reset หน้าเมื่อค้นหาใหม่
-    afterProductsLoaded()
   } catch (e) {
     error.value = 'โหลดรายการสินค้าไม่สำเร็จ'
   } finally {
     loading.value = false
   }
 }
+// const fetchProducts = async () => {
+//   loading.value = true
+//   error.value = ''
+//   try {
+//     const { data } = await api.get('products', { params: { search: search.value } })
+//     products.value = data.products || []
+//     page.value = 1  // reset หน้าเมื่อค้นหาใหม่
+//     afterProductsLoaded()
+//   } catch (e) {
+//     error.value = 'โหลดรายการสินค้าไม่สำเร็จ'
+//   } finally {
+//     loading.value = false
+//   }
+// }
 
 const afterProductsLoaded = () => {
   for (const p of products.value) {

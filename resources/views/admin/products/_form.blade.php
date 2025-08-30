@@ -38,7 +38,7 @@
                value="{{ old('barcode', $product->barcode ?? '') }}">
       </div>
       <div class="form-control">
-        <label class="label">หมวดหมู่</label>
+        {{-- <label class="label">หมวดหมู่</label>
         <select name="category_id" class="select select-bordered">
           <option value="">- ไม่ระบุ -</option>
           @foreach($categories as $c)
@@ -46,7 +46,17 @@
               {{ $c->name }}
             </option>
           @endforeach
-        </select>
+        </select> --}}
+        <label class="label">หมวดหมู่</label>
+          <select name="category_id" class="select select-bordered w-full">
+            <option value="">-- ไม่ระบุหมวด --</option>
+            @foreach(\App\Models\Category::orderBy('position')->orderBy('name')->get() as $cat)
+              <option value="{{ $cat->id }}" @selected(old('category_id', $product->category_id ?? null)==$cat->id)>
+                {{ $cat->name }}
+              </option>
+            @endforeach
+          </select>
+
       </div>
     </div>
 
