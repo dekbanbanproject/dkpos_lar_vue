@@ -14,7 +14,8 @@ class ProductController extends Controller
         $q = trim((string)$request->query('search', ''));
 
         $query = Product::query()
-            ->where('is_active', 1);
+            ->where('is_active', 1)
+            ->where('category_id', 5);
 
         if ($q !== '') {
             $query->where(function ($qq) use ($q) {
