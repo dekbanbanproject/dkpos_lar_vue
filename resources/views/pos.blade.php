@@ -17,7 +17,8 @@
 
         {{-- admin + manager --}}
         @if(in_array(auth('web')->user()->role, ['admin','manager']))
-          <li><a href="{{ route('products.index') }}">สินค้า</a></li>
+          {{-- <li><a href="{{ route('products.index') }}">สินค้า</a></li> --}}
+          <li><a href="{{ route('admin.products.index') }}">สินค้า</a></li>
           <li><a href="{{ route('reports.index') }}">รายงาน</a></li>
         @endif
 

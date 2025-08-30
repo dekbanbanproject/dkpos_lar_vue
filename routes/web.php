@@ -5,6 +5,7 @@ use App\Http\Controllers\Web\PosController;
 use App\Http\Controllers\Auth\StaffAuthController;
 use App\Http\Controllers\Auth\CustomerAuthController;
 use App\Http\Middleware\RoleMiddleware;
+use App\Http\Controllers\Admin\ProductsController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -40,6 +41,10 @@ Route::middleware(['auth:web', RoleMiddleware::class . ':admin,manager'])->group
 // });
 Route::middleware(['auth:web', RoleMiddleware::class . ':admin'])->group(function () {
     Route::view('/admin/users', 'admin.users')->name('admin.users');
+});
+Route::middleware(['auth:web', RoleMiddleware::class.':admin,manager'])
+    ->prefix('admin')->name('admin.')->group(function () {
+        Route::resource('products', ProductsController::class)->except(['show']);
 });
 
 // ลูกค้าเข้าหน้าโปรไฟล์/ประวัติคำสั่งซื้อ
