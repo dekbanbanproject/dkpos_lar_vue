@@ -96,6 +96,9 @@ Route::middleware('auth:web')->group(function () {
             Route::get('orders/pending', [\App\Http\Controllers\Admin\OrderApproveController::class, 'index'])->name('orders.pending');
             Route::post('orders/{order}/approve', [\App\Http\Controllers\Admin\OrderApproveController::class, 'approve'])->name('orders.approve');
 
+            Route::get('orders/{order}/edit', [\App\Http\Controllers\Admin\OrderEditController::class,'edit'])->name('orders.edit');
+            Route::put('orders/{order}', [\App\Http\Controllers\Admin\OrderEditController::class,'update'])->name('orders.update');
+
         });
 
     // เฉพาะ admin ล้วน

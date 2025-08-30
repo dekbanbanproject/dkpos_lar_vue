@@ -23,6 +23,8 @@
           <a href="{{ route('admin.stock-ins.index') }}" class="btn btn-ghost btn-sm">รับสินค้าเข้า</a>
           <a href="{{ route('admin.expenses.index') }}" class="btn btn-ghost btn-sm">รายจ่าย</a>
           <a href="{{ route('admin.reports.cashflow') }}" class="btn btn-ghost btn-sm">รายงาน</a>
+         <a href="{{ route('admin.orders.pending') }}" class="btn btn-ghost btn-sm">ออเดอร์</a>
+
         @endif
         <form method="POST" action="{{ route('logout') }}" class="inline">@csrf<button class="btn btn-sm">ออกจากระบบ</button></form>
       @else
