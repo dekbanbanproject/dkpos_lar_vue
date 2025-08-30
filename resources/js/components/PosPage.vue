@@ -5,23 +5,14 @@
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
           <div class="flex flex-col md:flex-row gap-2 items-center">
-            <input
-              v-model="search"
-              @input="debouncedFetch"
-              type="text"
-              placeholder="ค้นหาสินค้า / สแกนบาร์โค้ด..."
-              class="input input-bordered w-full"
-            />
+            <input v-model="search" @input="debouncedFetch" type="text" placeholder="ค้นหาสินค้า / สแกนบาร์โค้ด..."
+              class="input input-bordered w-full" />
             <button class="btn" @click="fetchProducts">ค้นหา</button>
           </div>
 
           <div class="mt-4 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-            <div
-              v-for="p in products"
-              :key="p.id"
-              class="card bg-base-200 hover:bg-base-300 cursor-pointer"
-              @click="addToCart(p)"
-            >
+            <div v-for="p in products" :key="p.id" class="card bg-base-200 hover:bg-base-300 cursor-pointer"
+              @click="addToCart(p)">
               <figure class="aspect-square overflow-hidden">
                 <img :src="thumb(p)" class="object-cover w-full h-full" alt="">
               </figure>
@@ -50,25 +41,18 @@
           <div v-if="cart.length === 0" class="opacity-70">ยังไม่มีสินค้าในตะกร้า</div>
 
           <div v-else class="flex flex-col gap-2 max-h-[50vh] overflow-auto pr-1">
-            <div
-              v-for="(c,idx) in cart"
-              :key="c.id"
-              class="flex items-center justify-between gap-2 bg-base-200 rounded-xl p-2"
-            >
+            <div v-for="(c, idx) in cart" :key="c.id"
+              class="flex items-center justify-between gap-2 bg-base-200 rounded-xl p-2">
               <div class="flex-1">
                 <div class="font-semibold leading-tight">{{ c.name }}</div>
                 <div class="text-sm opacity-70">
-                  {{ money(c.price) }} x {{ c.qty }} = {{ money(c.price*c.qty) }}
+                  {{ money(c.price) }} x {{ c.qty }} = {{ money(c.price * c.qty) }}
                 </div>
               </div>
               <div class="flex items-center gap-1">
                 <button class="btn btn-xs" @click="decrement(idx)">-</button>
-                <input
-                  type="number"
-                  class="input input-bordered input-xs w-16 text-center"
-                  v-model.number="c.qty"
-                  min="1"
-                />
+                <input type="number" class="input input-bordered input-xs w-16 text-center" v-model.number="c.qty"
+                  min="1" />
                 <button class="btn btn-xs" @click="increment(idx)">+</button>
               </div>
               <button class="btn btn-error btn-xs" @click="remove(idx)">ลบ</button>
@@ -82,28 +66,24 @@
               <span>ยอดรวม</span>
               <span class="font-semibold">{{ money(subTotal) }}</span>
             </div>
+
             <div class="flex items-center justify-between gap-2">
               <span>ส่วนลด</span>
-              <input
-                type="number"
-                class="input input-bordered input-sm w-40 text-right"
-                v-model.number="discount"
-                min="0"
-              />
+              <input type="number" class="input input-bordered input-sm w-40 text-right" v-model.number="discount"
+                min="0" :max="discountMax === Infinity ? null : discountMax" />
             </div>
+
             <div class="flex justify-between text-lg">
               <span>สุทธิ</span>
               <span class="font-bold">{{ money(total) }}</span>
             </div>
+
             <div class="flex items-center justify-between gap-2">
               <span>รับเงิน</span>
-              <input
-                type="number"
-                class="input input-bordered input-sm w-40 text-right"
-                v-model.number="paid"
-                min="0"
-              />
+              <input type="number" class="input input-bordered input-sm w-40 text-right" v-model.number="paid"
+                min="0" />
             </div>
+
             <div class="flex justify-between">
               <span>ทอน</span>
               <span class="font-semibold">{{ money(change) }}</span>
@@ -120,12 +100,9 @@
           </div>
 
           <div class="card-actions mt-4 flex gap-2">
-            <button class="btn btn-ghost" @click="clearCart" :disabled="cart.length===0">ล้างตะกร้า</button>
-            <button
-              class="btn btn-primary flex-1"
-              @click="checkout"
-              :disabled="cart.length===0 || total<=0 || paid<total"
-            >ชำระเงิน</button>
+            <button class="btn btn-ghost" @click="clearCart" :disabled="cart.length === 0">ล้างตะกร้า</button>
+            <button class="btn btn-primary flex-1" @click="checkout"
+              :disabled="cart.length === 0 || total <= 0 || paid < total">ชำระเงิน</button>
           </div>
 
           <p v-if="error" class="text-error mt-2">{{ error }}</p>
@@ -166,7 +143,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import axios from 'axios'
 
 const products = ref([])
@@ -226,13 +203,26 @@ const increment = (i) => {
 const decrement = (i) => { if (cart.value[i].qty > 1) cart.value[i].qty-- }
 const remove = (i) => cart.value.splice(i, 1)
 const clearCart = () => { cart.value = []; discount.value = 0; paid.value = 0; success.value = ''; error.value = '' }
+const role = (window.userRole || 'cashier').toLowerCase()
 
 const subTotal = computed(() => cart.value.reduce((s, c) => s + c.price * c.qty, 0))
-const total   = computed(() => Math.max(0, subTotal.value - (discount.value || 0)))
-const change  = computed(() => Math.max(0, (paid.value || 0) - total.value))
+const discountMax = computed(() => role === 'cashier' ? +(subTotal.value * 0.10).toFixed(2) : Infinity)
+const total = computed(() => Math.max(0, subTotal.value - (discount.value || 0)))
+const change = computed(() => Math.max(0, (paid.value || 0) - total.value))
 
-async function checkout () {
+// บีบส่วนลดของ cashier ไม่ให้เกิน 10% ของยอดรวม
+watch([discount, subTotal], () => {
+  if (role === 'cashier' && isFinite(discountMax.value) && discount.value > discountMax.value) {
+    discount.value = discountMax.value
+  }
+})
+
+async function checkout() {
   error.value = ''; success.value = ''
+  if (role === 'cashier' && isFinite(discountMax.value) && discount.value > discountMax.value) {
+    error.value = `ส่วนลดเกินสิทธิ์ (สูงสุด ${discountMax.value.toLocaleString()} บาท)`
+    return
+  }
   try {
     const payload = {
       items: cart.value.map(c => ({ product_id: c.id, qty: c.qty })),
@@ -252,5 +242,5 @@ async function checkout () {
   }
 }
 
-function printReceipt () { window.print() }
+function printReceipt() { window.print() }
 </script>
